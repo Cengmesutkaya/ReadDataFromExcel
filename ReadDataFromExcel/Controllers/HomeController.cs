@@ -17,9 +17,39 @@ namespace ReadDataFromExcel.Controllers
 {
     public class HomeController : Controller
     {
-        public ActionResult Index()
+        public ActionResult Export()
         {
-            return View();
+            DataTable dt = new DataTable("Grid");
+            dt.Columns.AddRange(new DataColumn[2] { new DataColumn("Ürün Kodu"),
+                                            new DataColumn("Fiyat")});
+
+
+
+            List<ProductDTO> list = new List<ProductDTO>();
+            ProductDTO productDTO = new ProductDTO();
+            productDTO.Code = 101;
+            productDTO.Price = 5;
+            list.Add(productDTO);
+
+            ProductDTO productDTO2 = new ProductDTO();
+            productDTO2.Code = 105;
+            productDTO2.Price = 50;
+            list.Add(productDTO2);
+
+            foreach (var customer in list)
+            {
+                dt.Rows.Add(customer.Code, customer.Price);
+            }
+
+            using (XLWorkbook wb = new XLWorkbook())
+            {
+                wb.Worksheets.Add(dt);
+                using (MemoryStream stream = new MemoryStream())
+                {
+                    wb.SaveAs(stream);
+                    return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Grid.xlsx");
+                }
+            }
         }
 
         public ActionResult ExcelDowload()
@@ -50,7 +80,7 @@ namespace ReadDataFromExcel.Controllers
             if (uploadfile != null)
             {
                 Stream stream = uploadfile.InputStream;
-                IExcelDataReader reader = ExcelReaderFactory.CreateReader(stream);    
+                IExcelDataReader reader = ExcelReaderFactory.CreateReader(stream);
 
                 DataSet result = reader.AsDataSet();
                 reader.Close();
@@ -74,7 +104,7 @@ namespace ReadDataFromExcel.Controllers
 
         }
 
-      public class ProductDTO
+        public class ProductDTO
         {
             public int Code { get; set; }
             public decimal Price { get; set; }
